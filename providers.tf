@@ -10,10 +10,10 @@ terraform {
       source = "hashicorp/aws"
       version = "3.71.0"
     }
-    tls = "3.1.0"
-    random = "3.1.0"
-    local = "2.1.0"
-    external = "2.2.0"
+    tls = ">= 3.0.0"
+    random = ">= 3.0.0"
+    local = ">= 2.0.0"
+    external = ">= 2.0.0"
   }
 }
 
