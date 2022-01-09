@@ -115,3 +115,70 @@ See [CONTRIBUTING](https://github.com/aws-samples/aws-network-firewall-terraform
 ## License
 
 This library is licensed under the MIT-0 License. See the [LICENSE](https://github.com/aws-samples/aws-network-firewall-terraform/blob/main/LICENSE) file.
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.1.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 3.71.0 |
+| <a name="requirement_external"></a> [external](#requirement\_external) | 2.2.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | 2.1.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | 3.1.0 |
+| <a name="requirement_tls"></a> [tls](#requirement\_tls) | 3.1.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_external"></a> [external](#provider\_external) | 2.2.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.1.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.1.0 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | 3.1.0 |
+
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_aws_network_firewall"></a> [aws\_network\_firewall](#module\_aws\_network\_firewall) | ./modules/network_firewall | n/a |
+| <a name="module_compute"></a> [compute](#module\_compute) | ./modules/compute | n/a |
+| <a name="module_iam_roles"></a> [iam\_roles](#module\_iam\_roles) | ./modules/iam_roles | n/a |
+| <a name="module_inspection_vpc"></a> [inspection\_vpc](#module\_inspection\_vpc) | ./modules/inspection_vpc | n/a |
+| <a name="module_key_pair"></a> [key\_pair](#module\_key\_pair) | terraform-aws-modules/key-pair/aws | n/a |
+| <a name="module_spoke_vpc"></a> [spoke\_vpc](#module\_spoke\_vpc) | ./modules/spoke_vpc | n/a |
+| <a name="module_tgw"></a> [tgw](#module\_tgw) | ./modules/tgw | n/a |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | ./modules/vpc | n/a |
+| <a name="module_vpc_endpoints"></a> [vpc\_endpoints](#module\_vpc\_endpoints) | ./modules/endpoints | n/a |
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [local_file.private_key](https://registry.terraform.io/providers/hashicorp/local/2.1.0/docs/resources/file) | resource |
+| [random_pet.key_name](https://registry.terraform.io/providers/hashicorp/random/3.1.0/docs/resources/pet) | resource |
+| [tls_private_key.private_key](https://registry.terraform.io/providers/hashicorp/tls/3.1.0/docs/resources/private_key) | resource |
+| [external_external.curlip](https://registry.terraform.io/providers/hashicorp/external/2.2.0/docs/data-sources/external) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_ec2_multi_subnet"></a> [ec2\_multi\_subnet](#input\_ec2\_multi\_subnet) | Multi subnet Instance Deployment | `bool` | `false` | no |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | `"aws-hub-and-spoke-demo"` | no |
+| <a name="input_region"></a> [region](#input\_region) | AWS Region | `string` | `"eu-west-2"` | no |
+| <a name="input_spoke"></a> [spoke](#input\_spoke) | VPC Spokes | `map(any)` | <pre>{<br>  "inspection-vpc": {<br>    "cidr_block": "10.129.0.0/16",<br>    "instance_type": "t2.micro",<br>    "instances_per_subnet": 1,<br>    "nat_gw": true,<br>    "spoke": false<br>  },<br>  "spoke-vpc-1": {<br>    "cidr_block": "10.11.0.0/16",<br>    "instance_type": "t2.micro",<br>    "instances_per_subnet": 1,<br>    "nat_gw": false,<br>    "spoke": true<br>  },<br>  "spoke-vpc-2": {<br>    "cidr_block": "10.12.0.0/16",<br>    "instance_type": "t2.micro",<br>    "instances_per_subnet": 1,<br>    "nat_gw": false,<br>    "spoke": true<br>  }<br>}</pre> | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_anfw_output"></a> [anfw\_output](#output\_anfw\_output) | Firewall module outputs |
+| <a name="output_compute"></a> [compute](#output\_compute) | Compute Module Output |
+| <a name="output_firewall"></a> [firewall](#output\_firewall) | Inspection Module VPCs |
+| <a name="output_inspection_routes"></a> [inspection\_routes](#output\_inspection\_routes) | Inspection Route Module Output |
+| <a name="output_spoke_routes"></a> [spoke\_routes](#output\_spoke\_routes) | Spoke Route Module Output |
+| <a name="output_terraform_iam_role"></a> [terraform\_iam\_role](#output\_terraform\_iam\_role) | IAM Role |
+| <a name="output_tgw"></a> [tgw](#output\_tgw) | TGW ID |
+| <a name="output_vpc"></a> [vpc](#output\_vpc) | The ID of the VPC |
+<!-- END_TF_DOCS -->

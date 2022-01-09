@@ -1,5 +1,5 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
+/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+   SPDX-License-Identifier: MIT-0 */
 
 output "vpc" {
   description = "The ID of the VPC"
@@ -28,13 +28,16 @@ output "inspection_routes" {
 
 
 output "firewall" {
+  description = "Inspection Module VPCs"
   value = { for k, v in module.vpc : k => v if contains(local.inspection_vpcs, k) }
 }
 
 output "anfw_output" {
+  description = "Firewall module outputs"
   value = module.aws_network_firewall.anfw
 }
 
 output "terraform_iam_role" {
+  description = "IAM Role"
   value = module.iam_roles.terraform_ssm_iam_role
 }

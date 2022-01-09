@@ -1,11 +1,17 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
+/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+   SPDX-License-Identifier: MIT-0 */
 
 # Variables that define project configuration
 variable "region" {
   description = "AWS Region"
   type        = string
   default     = "eu-west-2"
+}
+
+variable "project_name" {
+  description = "Name of the project"
+  type        = string
+  default     = "aws-hub-and-spoke-demo"
 }
 
 variable "ec2_multi_subnet" {
@@ -44,8 +50,3 @@ variable "spoke" {
   }
 }
 
-variable "my_ip" {
-  description = "IP address for secure access"
-  type        = string
-  default     = "0.0.0.0/0"
-}

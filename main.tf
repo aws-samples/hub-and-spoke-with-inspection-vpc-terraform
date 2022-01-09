@@ -1,8 +1,8 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
+/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+   SPDX-License-Identifier: MIT-0 */
 
-# The VPC module will deploy a VPC for each resoruce defined in the variables.tf file defined as a spoke
-# Additional resources such as NAT Gateways will be deploeyed according to the value set in the variables file
+/*  The VPC module will deploy a VPC for each resoruce defined in the variables.tf file defined as a spoke
+    Additional resources such as NAT Gateways will be deploeyed according to the value set in the variables file */
 
 # Define the private key algorithm
 resource "tls_private_key" "private_key" {
@@ -33,7 +33,7 @@ resource "local_file" "private_key" {
 }
 
 module "vpc" {
-  source                               = "./vpc"
+  source                               = "./modules/vpc"
   region                               = var.region
   for_each                             = var.spoke
   name                                 = each.key
@@ -41,6 +41,7 @@ module "vpc" {
   enable_nat_gateway                   = each.value.nat_gw == true ? true : false
   cidr_block                           = each.value.cidr_block
   manage_default_route_table           = true
+  map_public_ip_on_launch              = false
   single_nat_gateway                   = true
   enable_dns_hostnames                 = true
   enable_dns_support                   = true
@@ -56,7 +57,7 @@ module "vpc" {
 
 # AWS Transit Gateway Deployment
 module "tgw" {
-  source                                         = "./tgw"
+  source                                         = "./modules/tgw"
   default_route_table_association                = "disable"
   default_route_table_propagation                = "disable"
   dns_support                                    = "enable"
@@ -71,12 +72,12 @@ module "tgw" {
 
 # The IAM role creates the nessesary policies for the EC2 instance
 module "iam_roles" {
-  source = "./iam_roles"
+  source = "./modules/iam_roles"
 }
 
 #  The Compute module deployes EC2 instances into Spoke VPCs only, the number of instnaces are defined in variables.tf
 module "compute" {
-  source                      = "./compute"
+  source                      = "./modules/compute"
   for_each                    = { for k, v in module.vpc : k => v if contains(local.spoke_vpcs, k) }
   vpc_id                      = each.value.vpc_id
   instance_count              = var.spoke[each.key].instances_per_subnet
@@ -93,7 +94,7 @@ module "compute" {
 # The VPC Endpoint module deploys the necessary AWS VPC Endpoints to allow SSM
 # VPC Endpoints are only deployed into Spoke VPCs
 module "vpc_endpoints" {
-  source = "./endpoints"
+  source = "./modules/endpoints"
 
   # Only create VPC endpoints for spoke VPCs
   for_each = {
@@ -106,7 +107,7 @@ module "vpc_endpoints" {
 
 # Module to configre Spoke VPC routing
 module "spoke_vpc" {
-  source                                          = "./spoke_vpc"
+  source                                          = "./modules/spoke_vpc"
   for_each                                        = { for k, v in module.vpc : k => v if contains(local.spoke_vpcs, k) }
   name                                            = each.key
   vpc_id                                          = each.value.vpc_id
@@ -124,14 +125,12 @@ module "spoke_vpc" {
 
 # Module to configre Inspection VPC routing
 module "inspection_vpc" {
-  source                                          = "./inspection_vpc"
+  source                                          = "./modules/inspection_vpc"
   for_each                                        = { for k, v in module.vpc : k => v if contains(local.inspection_vpcs, k) }
   name                                            = each.key
   vpc_id                                          = each.value.vpc_id
   transit_gateway_id                              = module.tgw.tgw_id
   transit_gateway_attach_subnets                  = each.value.intra_subnets
-  inspection_vpc_firewall_subnets                 = each.value.private_subnets
-  inspection_vpc_public_subnets                   = each.value.public_subnets
   transit_gateway_default_route_table_association = false
   spoke_transit_gateway_route_table_id            = module.tgw.inspection_transit_gateway_route_table_id
   spoke_route_table_ids                           = each.value.intra_route_tables
@@ -140,13 +139,14 @@ module "inspection_vpc" {
   intra_route_table_id                            = each.value.intra_route_tables
   public_route_table_id                           = each.value.public_route_tables
   private_route_table_id                          = each.value.private_route_tables
-  inspection_vpc_igw_id                           = module.vpc[local.inspection_vpcs[0]].igw_id
 }
 
-# Module to the AWS Network Firewall
-# The ANFW policy is defined in the policy.tf file in the aws_network_firewall module directory
+/* Module to the AWS Network Firewall
+   The ANFW policy is defined in the policy.tf file in the aws_network_firewall module directory */
 module "aws_network_firewall" {
-  source                          = "./network_firewall"
+  source                          = "./modules/network_firewall"
+  region                          = var.region
+  identifier                      = var.project_name
   inspection_vpc_id               = values({ for k, v in module.vpc : k => v.vpc_id if contains(local.inspection_vpcs, k) })[0]
   inspection_vpc_firewall_subnets = values({ for k, v in module.vpc : k => v.private_subnets if contains(local.inspection_vpcs, k) })[0]
   spoke_cidr_blocks               = [for i in var.spoke : i.cidr_block if i.spoke == true]
