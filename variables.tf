@@ -49,4 +49,7 @@ variable "spoke" {
     }
   }
 }
-
+variable "my_ip" {
+description = "Local ip for testing"
+  type        = string
+}

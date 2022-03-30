@@ -70,7 +70,7 @@ resource "aws_cloudwatch_log_group" "network_firewall_alert_log_group" {
 # Create a Cloudwatch Log Group for AWS Network Firewall Flows
 resource "aws_cloudwatch_log_group" "network_firewall_flow_log_group" {
   name = "/aws/network-firewall/flows"
-  kms_key_id = aws_kms_key.log_key.id
+  kms_key_id = aws_kms_key.log_key.arn
   retention_in_days = 7
   tags = {
     Name = "network-firewall-flows"

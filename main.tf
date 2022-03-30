@@ -63,7 +63,6 @@ module "tgw" {
   dns_support                                    = "enable"
   inspection_vpc_id                              = local.inspection_vpcs[0]
   inspection_vpc_attachment_subnets              = values({ for k, v in module.vpc : k => v.intra_subnets if contains(local.inspection_vpcs, k) })[0]
-  spoke_vpc_map                                  = local.spoke_vpc_intra_map
   spoke_transit_gateway_default_route_attachment = values(module.inspection_vpc)
   inspection_vpc_attachment                      = values(module.inspection_vpc)[0].inspection_vpc_attachment
   spoke_vpc_attachments                          = { for k, v in module.spoke_vpc : k => v.spoke_vpc_attachment }

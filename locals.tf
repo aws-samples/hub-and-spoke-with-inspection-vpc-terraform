@@ -18,7 +18,7 @@ locals {
           from        = 0
           to          = 0
           protocol    = -1
-          cidr_blocks = [local.curlip]
+          cidr_blocks = [var.my_ip]
           description = "Open to the provider client IP address"
         }
         ssh = {
