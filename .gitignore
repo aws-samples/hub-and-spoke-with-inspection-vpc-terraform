@@ -44,3 +44,5 @@ terraform.rc
 
 # Project
 keys/
+
+gcm-diagnose.log
