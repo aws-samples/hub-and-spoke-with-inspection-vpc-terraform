@@ -51,8 +51,3 @@ variable "spoke_vpc_attachments" {
   type = map(string)
   description = "value of the VPC attachments for the VPCs to be used for the spoke transit gateway"
 }
-
-variable "spoke_vpc_map" {
-  type = list(string)
-  description = "Map of Spoke VPCs"
-}
