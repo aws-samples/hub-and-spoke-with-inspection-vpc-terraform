@@ -60,7 +60,7 @@ data "aws_iam_policy_document" "policy_kms_logs_document" {
 # Create a Cloudwatch Log Group for AWS Network Firewall Alerts
 resource "aws_cloudwatch_log_group" "network_firewall_alert_log_group" {
   name = "/aws/network-firewall/alerts"
-  kms_key_id = aws_kms_key.log_key.id
+  kms_key_id = aws_kms_key.log_key.arn
   retention_in_days = 7
   tags = {
     Name = "network-firewall-alerts"
