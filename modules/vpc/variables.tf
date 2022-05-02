@@ -53,7 +53,7 @@ variable "cidr_block" {
 variable "private_subnet_suffix" {
   type        = string
   description = "Private Subnet Prefix"
-  default     = "pivate-subnet"
+  default     = "private-subnet"
 }
 
 variable "public_subnet_suffix" {
