@@ -27,7 +27,7 @@ module "key_pair" {
 
 # Save the AWS SSH keypair to a local file
 resource "local_file" "private_key" {
-  content         = tls_private_key.private_key.public_key_openssh
+  content         = tls_private_key.private_key.private_key_pem
   filename        = "./keys/${module.key_pair.key_pair_key_name}.pem"
   file_permission = "0600"
 }
