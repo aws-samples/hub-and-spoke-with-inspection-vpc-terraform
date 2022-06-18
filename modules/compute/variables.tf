@@ -1,59 +1,42 @@
 /* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
    SPDX-License-Identifier: MIT-0 */
 
+variable "project_name" {
+  type        = string
+  description = "Project identifier."
+}
+
+variable "vpc_name" {
+  type        = string
+  description = "Name of the VPC where the EC2 instance(s) are created."
+}
+
 variable "vpc_id" {
   type        = string
-  description = "VPC ID"
+  description = "VPC ID to create the instances."
 }
 
-variable "instance_count" {
-  type        = string
-  description = "Number of EC2 Instances"
-  default     = 1
+variable "vpc_subnets" {
+  type        = list(string)
+  description = "Subnets in the VPC to create the instances."
 }
 
-variable "name" {
-  type        = string
-  description = "EC2 Instance Name"
-  default     = "Compute"
+variable "number_azs" {
+  type        = number
+  description = "Number of AZs to place instances."
 }
 
 variable "instance_type" {
   type        = string
-  description = "EC2 Instance Type"
-  default     = "t2.micro"
+  description = "EC2 instance type."
 }
 
-variable "cpu_credits" {
+variable "ec2_iam_instance_profile" {
   type        = string
-  description = "T type CPU Credits"
-  default     = "standard"
+  description = "EC2 instance profile to attach to the EC2 instance(s)"
 }
 
-variable "subnet_id" {
-  type        = list(any)
-  description = "Subnet ID to deploy into"
-  default     = []
-}
-
-variable "associate_public_ip_address" {
-  type        = bool
-  description = "Associate Public IP Addresses"
-  default     = false
-}
-
-variable "key_name" {
-  description = "value of ssh key_name"
-  type        = string
-  default     = ""
-}
-
-variable "instance_security_groups" {
-  type = any
-  description = "value of instance security groups"
-}
-
-variable "iam_instance_profile" {
-  type = string
-  description = "value of iam instance profile"
+variable "ec2_security_group" {
+  type        = any
+  description = "Information about the Security Groups to create."
 }

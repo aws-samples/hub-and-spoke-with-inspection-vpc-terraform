@@ -4,151 +4,155 @@
 /*  The VPC module will deploy a VPC for each resoruce defined in the variables.tf file defined as a spoke
     Additional resources such as NAT Gateways will be deploeyed according to the value set in the variables file */
 
-# Define the private key algorithm
-resource "tls_private_key" "private_key" {
-  algorithm = "RSA"
-}
+# Spoke VPCs. Module - https://github.com/aws-ia/terraform-aws-vpc
+module "spoke_vpcs" {
+  for_each = {
+    for k, v in var.vpcs : k => v
+    if v.type == "spoke"
+  }
+  source  = "aws-ia/vpc/aws"
+  version = "= 1.4.0"
 
-# Use the random pet name as the EC2 instance name
-resource "random_pet" "key_name" {
-  length = 2
-}
+  name       = each.key
+  cidr_block = each.value.cidr_block
+  az_count   = each.value.number_azs
 
-# Create an AWS SSH keypair for the EC2 instance
-module "key_pair" {
-  source = "terraform-aws-modules/key-pair/aws"
+  subnets = {
+    private = {
+      name_prefix              = "private"
+      netmask                  = each.value.private_subnet_netmask
+      route_to_nat             = false
+      route_to_transit_gateway = ["0.0.0.0/0"]
+    }
+    transit_gateway = {
+      name_prefix                                     = "tgw"
+      netmask                                         = each.value.tgw_subnet_netmask
+      transit_gateway_id                              = aws_ec2_transit_gateway.tgw.id
+      transit_gateway_default_route_table_association = false
+      transit_gateway_default_route_table_propagation = false
+    }
+  }
 
-  key_name   = random_pet.key_name.id
-  public_key = tls_private_key.private_key.public_key_openssh
-  tags = {
-    Provisioner = "Terraform"
+  vpc_flow_logs = {
+    log_destination_type = each.value.flow_log_config.log_destination_type
+    retention_in_days    = each.value.flow_log_config.retention_in_days
+    iam_role_arn         = module.iam_kms.vpc_flowlog_role
+    kms_key_id           = module.iam_kms.kms_arn
   }
 }
 
-# Save the AWS SSH keypair to a local file
-resource "local_file" "private_key" {
-  content         = tls_private_key.private_key.private_key_pem
-  filename        = "./keys/${module.key_pair.key_pair_key_name}.pem"
-  file_permission = "0600"
+# Inspection VPC. Module - https://github.com/aws-ia/terraform-aws-vpc
+module "inspection_vpc" {
+  for_each = {
+    for k, v in var.vpcs : k => v
+    if v.type == "inspection"
+  }
+  source  = "aws-ia/vpc/aws"
+  version = "= 1.4.0"
+
+  name       = each.key
+  cidr_block = each.value.cidr_block
+  az_count   = each.value.number_azs
+
+  subnets = {
+    public = {
+      name_prefix               = "public"
+      netmask                   = each.value.public_subnet_netmask
+      nat_gateway_configuration = "all_azs"
+    }
+
+    private = {
+      name_prefix              = "inspection"
+      netmask                  = each.value.private_subnet_netmask
+      route_to_nat             = true
+      route_to_transit_gateway = [var.supernet]
+    }
+    transit_gateway = {
+      name_prefix                                     = "tgw"
+      netmask                                         = each.value.tgw_subnet_netmask
+      transit_gateway_id                              = aws_ec2_transit_gateway.tgw.id
+      transit_gateway_default_route_table_association = false
+      transit_gateway_default_route_table_propagation = false
+    }
+  }
+
+  vpc_flow_logs = {
+    log_destination_type = each.value.flow_log_config.log_destination_type
+    retention_in_days    = each.value.flow_log_config.retention_in_days
+    iam_role_arn         = module.iam_kms.vpc_flowlog_role
+    kms_key_id           = module.iam_kms.kms_arn
+  }
 }
 
-module "vpc" {
-  source                               = "./modules/vpc"
-  region                               = var.region
-  for_each                             = var.spoke
-  name                                 = each.key
-  create_igw                           = each.value.nat_gw == true ? true : false
-  enable_nat_gateway                   = each.value.nat_gw == true ? true : false
-  cidr_block                           = each.value.cidr_block
-  manage_default_route_table           = true
-  map_public_ip_on_launch              = false
-  single_nat_gateway                   = true
-  enable_dns_hostnames                 = true
-  enable_dns_support                   = true
-  manage_default_security_group        = false
-  enable_flow_log                      = false
-  create_flow_log_cloudwatch_log_group = false
-  create_flow_log_cloudwatch_iam_role  = false
-  flow_log_max_aggregation_interval    = 60
-  transit_gateway_id                   = module.tgw.tgw_id
-  vpc_security_groups                  = local.vpc_security_groups
+# AWS Transit Gateway
+resource "aws_ec2_transit_gateway" "tgw" {
+  description                     = "Transit Gateway - ${var.project_name}"
+  default_route_table_association = "disable"
+  default_route_table_propagation = "disable"
+
+  tags = {
+    Name = "tgw-${var.project_name}"
+  }
 }
 
+# AWS Transit Gateway Routes
+module "tgw_routes" {
+  source = "./modules/tgw_routes"
 
-# AWS Transit Gateway Deployment
-module "tgw" {
-  source                                         = "./modules/tgw"
-  default_route_table_association                = "disable"
-  default_route_table_propagation                = "disable"
-  dns_support                                    = "enable"
-  inspection_vpc_id                              = local.inspection_vpcs[0]
-  inspection_vpc_attachment_subnets              = values({ for k, v in module.vpc : k => v.intra_subnets if contains(local.inspection_vpcs, k) })[0]
-  spoke_transit_gateway_default_route_attachment = values(module.inspection_vpc)
-  inspection_vpc_attachment                      = values(module.inspection_vpc)[0].inspection_vpc_attachment
-  spoke_vpc_attachments                          = { for k, v in module.spoke_vpc : k => v.spoke_vpc_attachment }
+  transit_gateway_id        = aws_ec2_transit_gateway.tgw.id
+  tgw_spoke_attachments     = { for k, v in module.spoke_vpcs : k => v.transit_gateway_attachment_id }
+  tgw_inspection_attachment = module.inspection_vpc["inspection-vpc"].transit_gateway_attachment_id
 }
 
-
-# The IAM role creates the nessesary policies for the EC2 instance
-module "iam_roles" {
-  source = "./modules/iam_roles"
-}
-
-#  The Compute module deployes EC2 instances into Spoke VPCs only, the number of instnaces are defined in variables.tf
-module "compute" {
-  source                      = "./modules/compute"
-  for_each                    = { for k, v in module.vpc : k => v if contains(local.spoke_vpcs, k) }
-  vpc_id                      = each.value.vpc_id
-  instance_count              = var.spoke[each.key].instances_per_subnet
-  name                        = "${each.key}-instance"
-  instance_type               = var.spoke[each.key].instance_type
-  cpu_credits                 = "standard"
-  subnet_id                   = var.ec2_multi_subnet ? each.value.private_subnets : slice(each.value.private_subnets, 0, 1)
-  associate_public_ip_address = false
-  key_name                    = module.key_pair.key_pair_key_name
-  instance_security_groups    = local.instance_security_groups
-  iam_instance_profile        = module.iam_roles.terraform_ssm_iam_role.name
-}
-
-# The VPC Endpoint module deploys the necessary AWS VPC Endpoints to allow SSM
+# The VPC Endpoint module deploys the necessary AWS VPC Endpoints to allow SSM (information of the endpoints to create in locals.tf)
 # VPC Endpoints are only deployed into Spoke VPCs
 module "vpc_endpoints" {
-  source = "./modules/endpoints"
+  for_each = module.spoke_vpcs
+  source   = "./modules/endpoints"
 
-  # Only create VPC endpoints for spoke VPCs
-  for_each = {
-    for k, v in module.vpc : k => v if length((regexall("spoke", k))) > 0
-  }
-  subnet_ids               = each.value.private_subnets
-  vpc_id                   = each.value.vpc_id
-  endpoint_security_groups = local.endpoint_security_groups
+  project_name             = var.project_name
+  vpc_name                 = each.key
+  vpc_id                   = each.value.vpc_attributes.id
+  vpc_subnets              = values({ for k, v in each.value.private_subnet_attributes_by_az : k => v.id })
+  endpoints_security_group = local.security_groups.endpoints
+  endpoints_service_names  = local.endpoint_service_names
 }
 
-# Module to configre Spoke VPC routing
-module "spoke_vpc" {
-  source                                          = "./modules/spoke_vpc"
-  for_each                                        = { for k, v in module.vpc : k => v if contains(local.spoke_vpcs, k) }
-  name                                            = each.key
-  vpc_id                                          = each.value.vpc_id
-  transit_gateway_id                              = module.tgw.tgw_id
-  transit_gateway_attach_subnets                  = each.value.intra_subnets
-  transit_gateway_default_route_table_association = false
-  intra_route_table_id                            = each.value.intra_route_tables
-  public_route_table_id                           = each.value.public_route_tables
-  private_route_table_id                          = each.value.private_route_tables
-  spoke_transit_gateway_route_table_id            = module.tgw.spoke_transit_gateway_route_table_id
-  depends_on = [
-    module.tgw.tgw_id
-  ]
+
+# The IAM role creates the nessesary policies for the VPC Flow logs and the EC2 instance
+module "iam_kms" {
+  source = "./modules/iam_kms"
+
+  project_name = var.project_name
+  aws_region   = var.region
 }
 
-# Module to configre Inspection VPC routing
-module "inspection_vpc" {
-  source                                          = "./modules/inspection_vpc"
-  for_each                                        = { for k, v in module.vpc : k => v if contains(local.inspection_vpcs, k) }
-  name                                            = each.key
-  vpc_id                                          = each.value.vpc_id
-  transit_gateway_id                              = module.tgw.tgw_id
-  transit_gateway_attach_subnets                  = each.value.intra_subnets
-  transit_gateway_default_route_table_association = false
-  spoke_transit_gateway_route_table_id            = module.tgw.inspection_transit_gateway_route_table_id
-  spoke_route_table_ids                           = each.value.intra_route_tables
-  spoke_vpc_cidr_blocks                           = local.spoke_cidr
-  anfw_endpoint_info                              = module.aws_network_firewall.anfw
-  intra_route_table_id                            = each.value.intra_route_tables
-  public_route_table_id                           = each.value.public_route_tables
-  private_route_table_id                          = each.value.private_route_tables
+# The Compute module deployes EC2 instances into Spoke VPCs only, the number of instances are defined in variables.tf
+module "compute" {
+  for_each = module.spoke_vpcs
+  source   = "./modules/compute"
+
+  project_name             = var.project_name
+  vpc_name                 = each.key
+  vpc_id                   = each.value.vpc_attributes.id
+  vpc_subnets              = var.ec2_multi_subnet ? values({ for k, v in each.value.private_subnet_attributes_by_az : k => v.id }) : slice(values({ for k, v in each.value.private_subnet_attributes_by_az : k => v.id }), 0, 1)
+  number_azs               = var.ec2_multi_subnet ? var.vpcs[each.key].number_azs : 1
+  instance_type            = var.vpcs[each.key].instance_type
+  ec2_iam_instance_profile = module.iam_kms.ec2_iam_instance_profile
+  ec2_security_group       = local.security_groups.instance
 }
 
 /* Module to the AWS Network Firewall
    The ANFW policy is defined in the policy.tf file in the aws_network_firewall module directory */
 module "aws_network_firewall" {
-  source                          = "./modules/network_firewall"
-  region                          = var.region
-  identifier                      = var.project_name
-  inspection_vpc_id               = values({ for k, v in module.vpc : k => v.vpc_id if contains(local.inspection_vpcs, k) })[0]
-  inspection_vpc_firewall_subnets = values({ for k, v in module.vpc : k => v.private_subnets if contains(local.inspection_vpcs, k) })[0]
-  spoke_cidr_blocks               = [for i in var.spoke : i.cidr_block if i.spoke == true]
+  source = "./modules/network_firewall"
 
-
+  project_name       = var.project_name
+  vpc_name           = "inspection-vpc"
+  vpc_info           = module.inspection_vpc["inspection-vpc"]
+  supernet           = var.supernet
+  transit_gateway_id = aws_ec2_transit_gateway.tgw.id
+  number_azs         = var.vpcs["inspection-vpc"].number_azs
+  logging_config     = var.vpcs["inspection-vpc"].firewall_log_config
+  kms_key            = module.iam_kms.kms_arn
 }

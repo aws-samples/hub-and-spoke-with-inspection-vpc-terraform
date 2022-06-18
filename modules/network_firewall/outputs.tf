@@ -2,6 +2,6 @@
    SPDX-License-Identifier: MIT-0 */
 
 output "anfw" {
-  description = "AWS Network Firewall Output"
-  value = aws_networkfirewall_firewall.inspection_vpc_network_firewall
+  description = "AWS Network Firewall"
+  value       = aws_networkfirewall_firewall.anfw
 }

@@ -1,43 +1,37 @@
 /* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
    SPDX-License-Identifier: MIT-0 */
 
-output "vpc" {
-  description = "The ID of the VPC"
-  value       = [for i in module.vpc : i]
+output "spoke_vpc_id" {
+  description = "List of the Spoke VPC IDs."
+  value       = { for k, v in module.spoke_vpcs : k => v.vpc_attributes.id }
 }
 
-output "tgw" {
-  description = "TGW ID"
-  value       = [for i in module.tgw : i]
+output "inspection_vpc_id" {
+  description = "Inspection VPC ID."
+  value       = module.inspection_vpc["inspection-vpc"].vpc_attributes.id
 }
 
-output "compute" {
-  description = "Compute Module Output"
-  value       = [for i in module.compute : i]
+output "transit_gateway_id" {
+  description = "AWS Transit Gateway ID."
+  value       = aws_ec2_transit_gateway.tgw.id
 }
 
-output "spoke_routes" {
-  description = "Spoke Route Module Output"
-  value       = [for i in module.spoke_vpc : i]
+output "transit_gateway_route_tables" {
+   description = "Transit Gateway Route Table."
+   value = { for k, v in module.tgw_routes: k => v.id }
 }
 
-output "inspection_routes" {
-  description = "Inspection Route Module Output"
-  value       = [for i in module.inspection_vpc : i]
+output "vpc_endpoints" {
+   description = "SSM VPC endpoints created."
+   value = { for k, v in module.vpc_endpoints: k => v.endpoint_ids }
 }
 
-
-output "firewall" {
-  description = "Inspection Module VPCs"
-  value = { for k, v in module.vpc : k => v if contains(local.inspection_vpcs, k) }
+output "instances" {
+   description = "EC2 instances created."
+   value = { for k, v in module.compute: k => v.instances_created[0].id }
 }
 
-output "anfw_output" {
-  description = "Firewall module outputs"
-  value = module.aws_network_firewall.anfw
-}
-
-output "terraform_iam_role" {
-  description = "IAM Role"
-  value = module.iam_roles.terraform_ssm_iam_role
+output "network_firewall" {
+   description = "AWS Network Firewall ID."
+   value = module.aws_network_firewall.anfw.id
 }

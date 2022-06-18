@@ -4,18 +4,28 @@
 # Deploy SSM, SMM Messages, EC2 and EC2 Messages VPC Endpoints
 # This provides SSM Connectivity to EC2 Compute Instances
 
-resource "aws_security_group" "endpoint_security_group" {
-  for_each    = var.endpoint_security_groups
-  name        = each.value.name
-  description = each.value.description
+# VPC ENDPOINTS
+resource "aws_vpc_endpoint" "endpoint" {
+  for_each = var.endpoints_service_names
+
+  vpc_id              = var.vpc_id
+  service_name        = each.value.name
+  vpc_endpoint_type   = each.value.type
+  subnet_ids          = var.vpc_subnets
+  security_group_ids  = [aws_security_group.endpoints_vpc_sg.id]
+  private_dns_enabled = each.value.private_dns
+}
+
+# VPC ENDPOINTS SECURITY GROUPS
+resource "aws_security_group" "endpoints_vpc_sg" {
+  name        = var.endpoints_security_group.name
+  description = var.endpoints_security_group.description
   vpc_id      = var.vpc_id
 
-
-
-  #public Security Group
   dynamic "ingress" {
-    for_each = each.value.ingress
+    for_each = var.endpoints_security_group.ingress
     content {
+      description = ingress.value.description
       from_port   = ingress.value.from
       to_port     = ingress.value.to
       protocol    = ingress.value.protocol
@@ -23,43 +33,18 @@ resource "aws_security_group" "endpoint_security_group" {
     }
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "egress" {
+    for_each = var.endpoints_security_group.egress
+    content {
+      description = egress.value.description
+      from_port   = egress.value.from
+      to_port     = egress.value.to
+      protocol    = egress.value.protocol
+      cidr_blocks = egress.value.cidr_blocks
+    }
   }
 
   tags = {
-    Name = "Endpoint Security Group"
-  }
-  
-}
-module "vpc_endpoints" {
-  source = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-
-  vpc_id             = var.vpc_id
-  security_group_ids = [for i in aws_security_group.endpoint_security_group : i.id]
-  endpoints = {
-    ssm = {
-      service             = "ssm"
-      private_dns_enabled = true
-      subnet_ids          = var.subnet_ids
-    },
-    ssmmessages = {
-      service             = "ssmmessages"
-      private_dns_enabled = true
-      subnet_ids          = var.subnet_ids
-    },
-    ec2 = {
-      service             = "ec2"
-      private_dns_enabled = true
-      subnet_ids          = var.subnet_ids
-    },
-    ec2messages = {
-      service             = "ec2messages"
-      private_dns_enabled = true
-      subnet_ids          = var.subnet_ids
-    }
+    Name = "${var.vpc_name}-endpoints-security-group-${var.project_name}"
   }
 }

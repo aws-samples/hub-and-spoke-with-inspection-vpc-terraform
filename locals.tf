@@ -2,82 +2,82 @@
    SPDX-License-Identifier: MIT-0 */
 
 locals {
-  spoke_cidr              = [for i in var.spoke : i.cidr_block if i.spoke == true]
-  inspection_vpcs         = [for i in keys(var.spoke) : i if var.spoke[i].spoke == false]
-  spoke_vpcs              = [for i in keys(var.spoke) : i if var.spoke[i].spoke == true]
-  spoke_vpc_ids           = { for k, v in module.vpc : k => v.vpc_id if contains(local.spoke_vpcs, k) }
-  spoke_vpc_intra_subnets = { for k, v in module.vpc : k => v.intra_subnets if contains(local.spoke_vpcs, k) }
-  spoke_vpc_intra_map     = zipmap(values(local.spoke_vpc_ids), values(local.spoke_vpc_intra_subnets))
-  
-  vpc_security_groups = {
-    public = {
-      name        = "public_vpc_security_group"
-      description = "ingress access"
+  security_groups = {
+    instance = {
+      name        = "instance_security_group"
+      description = "Instance SG (Allowing ICMP and HTTP/HTTPS access)"
       ingress = {
-        open = {
-          from        = 0
-          to          = 0
-          protocol    = -1
-          cidr_blocks = [var.my_ip]
-          description = "Open to the provider client IP address"
-        }
-        ssh = {
-          from        = 22
-          to          = 22
-          protocol    = "tcp"
-          cidr_blocks = ["0.0.0.0/0"]
-          description = "SSH access"
-        }
-        http = {
-          from        = 80
-          to          = 80
-          protocol    = "tcp"
-          cidr_blocks = ["0.0.0.0/0"]
-          description = "HTTP access"
-        }
-      }
-    }
-  }
-
-  instance_security_groups = {
-    public = {
-      name        = "public_instance_security_group"
-      description = "ingress access"
-      ingress = {
-        open = {
-          from        = 0
-          to          = 0
-          protocol    = -1
-          cidr_blocks = [var.my_ip]
-        }
-        ssh = {
-          from        = 22
-          to          = 22
-          protocol    = "tcp"
+        icmp = {
+          description = "Allowing ICMP traffic"
+          from        = -1
+          to          = -1
+          protocol    = "icmp"
           cidr_blocks = ["0.0.0.0/0"]
         }
         http = {
+          description = "Allowing HTTP traffic"
           from        = 80
           to          = 80
           protocol    = "tcp"
           cidr_blocks = ["0.0.0.0/0"]
         }
+        https = {
+          description = "Allowing HTTPS traffic"
+          from        = 443
+          to          = 443
+          protocol    = "tcp"
+          cidr_blocks = ["0.0.0.0/0"]
+        }
+      }
+      egress = {
+        any = {
+          description = "Any traffic"
+          from        = 0
+          to          = 0
+          protocol    = "-1"
+          cidr_blocks = ["0.0.0.0/0"]
+        }
+      }
+    }
+    endpoints = {
+      name        = "endpoints_sg"
+      description = "Security Group for SSM connection"
+      ingress = {
+        https = {
+          description = "Allowing HTTPS"
+          from        = 443
+          to          = 443
+          protocol    = "tcp"
+          cidr_blocks = ["0.0.0.0/0"]
+        }
+      }
+      egress = {
+        any = {
+          description = "Any traffic"
+          from        = 0
+          to          = 0
+          protocol    = "-1"
+          cidr_blocks = ["0.0.0.0/0"]
+        }
       }
     }
   }
 
-  endpoint_security_groups = {
-    public = {
-      name        = "endoint_security_group"
-      description = "ingress access"
-      ingress = {
-        open = {
-          from        = 0
-          to          = 0
-          protocol    = -1
-          cidr_blocks = ["0.0.0.0/0"]
-        }
-      }
+  endpoint_service_names = {
+    ssm = {
+      name        = "com.amazonaws.${var.region}.ssm"
+      type        = "Interface"
+      private_dns = true
+    }
+    ssmmessages = {
+      name        = "com.amazonaws.${var.region}.ssmmessages"
+      type        = "Interface"
+      private_dns = true
+    }
+    ec2messages = {
+      name        = "com.amazonaws.${var.region}.ec2messages"
+      type        = "Interface"
+      private_dns = true
     }
   }
 }

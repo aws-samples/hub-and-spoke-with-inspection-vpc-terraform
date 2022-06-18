@@ -1,27 +1,42 @@
 /* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
    SPDX-License-Identifier: MIT-0 */
 
-variable "region" {
-  type = string
-  description = "Value for AWS region"
-}
-variable "inspection_vpc_id" {
+variable "project_name" {
   type        = string
-  description = "Inspection VPC ID"
+  description = "Project identifier."
 }
 
-
-variable "inspection_vpc_firewall_subnets" {
-  type        = list(string)
-  description = "Inspection VPC Firewall Subnets"
+variable "vpc_name" {
+  type        = string
+  description = "VPC name."
 }
 
-variable "spoke_cidr_blocks" {
-  type = list(string)
-  description = "Spoke CIDR blocks"
+variable "vpc_info" {
+  type        = any
+  description = "VPC Information."
 }
 
-variable "identifier" {
-  type = string
-  description = "Identifier for the kms key"
+variable "supernet" {
+  type        = string
+  description = "Network's supernet - used for the routes to the Firewall Endpoint from the public subnet."
+}
+
+variable "transit_gateway_id" {
+  type        = string
+  description = "Transit Gateway ID - to use in the VPC routes from the ANFW endpoints."
+}
+
+variable "number_azs" {
+  type        = number
+  description = "Number of Availability Zones, indicated in the root variables."
+}
+
+variable "logging_config" {
+  type        = string
+  description = "Logging configuration (defined in root variables)."
+}
+
+variable "kms_key" {
+  type        = string
+  description = "ARN of KMS Key to use in the logs encryption (at rest)."
 }
