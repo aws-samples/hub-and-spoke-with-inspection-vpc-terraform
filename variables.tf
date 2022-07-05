@@ -34,7 +34,7 @@ variable "vpcs" {
 
     "inspection-vpc" = {
       type                   = "inspection"
-      cidr_block             = "10.129.0.0/16"
+      cidr_block             = "10.129.0.0/24"
       public_subnet_netmask  = 28
       private_subnet_netmask = 28
       tgw_subnet_netmask     = 28
@@ -44,7 +44,6 @@ variable "vpcs" {
         log_destination_type = "cloud-watch-logs"
         retention_in_days    = 7
       }
-      firewall_log_config = "cloud-watch-logs"
     }
 
     "spoke-vpc-1" = {

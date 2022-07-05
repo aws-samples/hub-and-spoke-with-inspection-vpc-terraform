@@ -11,7 +11,7 @@ module "spoke_vpcs" {
     if v.type == "spoke"
   }
   source  = "aws-ia/vpc/aws"
-  version = "= 1.4.0"
+  version = "= 1.4.1"
 
   name       = each.key
   cidr_block = each.value.cidr_block
@@ -48,7 +48,7 @@ module "inspection_vpc" {
     if v.type == "inspection"
   }
   source  = "aws-ia/vpc/aws"
-  version = "= 1.4.0"
+  version = "= 1.4.1"
 
   name       = each.key
   cidr_block = each.value.cidr_block
@@ -73,6 +73,7 @@ module "inspection_vpc" {
       transit_gateway_id                              = aws_ec2_transit_gateway.tgw.id
       transit_gateway_default_route_table_association = false
       transit_gateway_default_route_table_propagation = false
+      transit_gateway_appliance_mode_support          = "enable"
     }
   }
 
@@ -95,13 +96,52 @@ resource "aws_ec2_transit_gateway" "tgw" {
   }
 }
 
-# AWS Transit Gateway Routes
-module "tgw_routes" {
-  source = "./modules/tgw_routes"
+# TRANSIT GATEWAY ROUTING
+# Spoke Transit Gateway Route Table
+resource "aws_ec2_transit_gateway_route_table" "spoke_vpc_route_table" {
+  transit_gateway_id = aws_ec2_transit_gateway.tgw.id
 
-  transit_gateway_id        = aws_ec2_transit_gateway.tgw.id
-  tgw_spoke_attachments     = { for k, v in module.spoke_vpcs : k => v.transit_gateway_attachment_id }
-  tgw_inspection_attachment = module.inspection_vpc["inspection-vpc"].transit_gateway_attachment_id
+  tags = {
+    Name = "Spoke_Route_Table"
+  }
+}
+
+# Post-Inspection Transit Gateway Route Table
+resource "aws_ec2_transit_gateway_route_table" "post_inspection_vpc_route_table" {
+  transit_gateway_id = aws_ec2_transit_gateway.tgw.id
+
+  tags = {
+    Name = "Post_Inspection_Route_Table"
+  }
+}
+
+# TGW Route Table Association - Spoke VPCs
+resource "aws_ec2_transit_gateway_route_table_association" "spoke_tgw_association" {
+  for_each = { for k, v in module.spoke_vpcs : k => v.transit_gateway_attachment_id }
+
+  transit_gateway_attachment_id  = each.value
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spoke_vpc_route_table.id
+}
+
+# TGW Route Table Association - Inspection VPC
+resource "aws_ec2_transit_gateway_route_table_association" "inspection_tgw_association" {
+  transit_gateway_attachment_id  = module.inspection_vpc["inspection-vpc"].transit_gateway_attachment_id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.post_inspection_vpc_route_table.id
+}
+
+# All the Spoke VPCs propagate to the Post-Inspection Transit Gateway Route Table
+resource "aws_ec2_transit_gateway_route_table_propagation" "spoke_propagation_to_post_inspection" {
+  for_each = { for k, v in module.spoke_vpcs : k => v.transit_gateway_attachment_id }
+
+  transit_gateway_attachment_id  = each.value
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.post_inspection_vpc_route_table.id
+}
+
+# Static Route (0.0.0.0/0) in the Spoke TGW Route Table sending all the traffic to the Inspection VPC
+resource "aws_ec2_transit_gateway_route" "default_route_spoke_to_inspection" {
+  destination_cidr_block         = "0.0.0.0/0"
+  transit_gateway_attachment_id  = module.inspection_vpc["inspection-vpc"].transit_gateway_attachment_id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spoke_vpc_route_table.id
 }
 
 # The VPC Endpoint module deploys the necessary AWS VPC Endpoints to allow SSM (information of the endpoints to create in locals.tf)
@@ -147,12 +187,9 @@ module "compute" {
 module "aws_network_firewall" {
   source = "./modules/network_firewall"
 
-  project_name       = var.project_name
-  vpc_name           = "inspection-vpc"
-  vpc_info           = module.inspection_vpc["inspection-vpc"]
-  supernet           = var.supernet
-  transit_gateway_id = aws_ec2_transit_gateway.tgw.id
-  number_azs         = var.vpcs["inspection-vpc"].number_azs
-  logging_config     = var.vpcs["inspection-vpc"].firewall_log_config
-  kms_key            = module.iam_kms.kms_arn
+  project_name = var.project_name
+  vpc_name     = "inspection-vpc"
+  vpc_info     = module.inspection_vpc["inspection-vpc"]
+  supernet     = var.supernet
+  number_azs   = var.vpcs["inspection-vpc"].number_azs
 }

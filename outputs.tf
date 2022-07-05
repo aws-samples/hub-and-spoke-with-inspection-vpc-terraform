@@ -17,21 +17,24 @@ output "transit_gateway_id" {
 }
 
 output "transit_gateway_route_tables" {
-   description = "Transit Gateway Route Table."
-   value = { for k, v in module.tgw_routes: k => v.id }
+  description = "Transit Gateway Route Table."
+  value = {
+    spoke           = aws_ec2_transit_gateway_route_table.spoke_vpc_route_table.id
+    post-inspection = aws_ec2_transit_gateway_route_table.post_inspection_vpc_route_table.id
+  }
 }
 
 output "vpc_endpoints" {
-   description = "SSM VPC endpoints created."
-   value = { for k, v in module.vpc_endpoints: k => v.endpoint_ids }
+  description = "SSM VPC endpoints created."
+  value       = { for k, v in module.vpc_endpoints : k => v.endpoint_ids }
 }
 
 output "instances" {
-   description = "EC2 instances created."
-   value = { for k, v in module.compute: k => v.instances_created[0].id }
+  description = "EC2 instances created."
+  value       = { for k, v in module.compute : k => v.instances_created.*.id }
 }
 
 output "network_firewall" {
-   description = "AWS Network Firewall ID."
-   value = module.aws_network_firewall.anfw.id
+  description = "AWS Network Firewall ID."
+  value       = module.aws_network_firewall.anfw.id
 }
