@@ -16,6 +16,11 @@ variable "vpc_info" {
   description = "VPC Information."
 }
 
+variable "policy_document" {
+  type        = string
+  description = "Policy document."
+}
+
 variable "supernet" {
   type        = string
   description = "Network's supernet - used for the routes to the Firewall Endpoint from the public subnet."

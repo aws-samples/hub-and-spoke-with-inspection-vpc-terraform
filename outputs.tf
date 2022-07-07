@@ -1,14 +1,12 @@
 /* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
    SPDX-License-Identifier: MIT-0 */
 
-output "spoke_vpc_id" {
-  description = "List of the Spoke VPC IDs."
-  value       = { for k, v in module.spoke_vpcs : k => v.vpc_attributes.id }
-}
-
-output "inspection_vpc_id" {
-  description = "Inspection VPC ID."
-  value       = module.inspection_vpc["inspection-vpc"].vpc_attributes.id
+output "vpcs" {
+  description = "VPCs created."
+  value = { 
+    spokes = { for k, v in module.spoke_vpcs : k => v.vpc_attributes.id }
+    inspection = module.inspection_vpc["inspection-vpc"].vpc_attributes.id
+  }
 }
 
 output "transit_gateway_id" {

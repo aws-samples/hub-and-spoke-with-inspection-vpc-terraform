@@ -187,9 +187,10 @@ module "compute" {
 module "aws_network_firewall" {
   source = "./modules/network_firewall"
 
-  project_name = var.project_name
-  vpc_name     = "inspection-vpc"
-  vpc_info     = module.inspection_vpc["inspection-vpc"]
-  supernet     = var.supernet
-  number_azs   = var.vpcs["inspection-vpc"].number_azs
+  project_name    = var.project_name
+  vpc_name        = "inspection-vpc"
+  vpc_info        = module.inspection_vpc["inspection-vpc"]
+  policy_document = aws_networkfirewall_firewall_policy.anfw_policy.arn
+  supernet        = var.supernet
+  number_azs      = var.vpcs["inspection-vpc"].number_azs
 }

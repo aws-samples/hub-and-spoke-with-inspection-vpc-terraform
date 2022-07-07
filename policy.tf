@@ -90,9 +90,17 @@ resource "aws_networkfirewall_rule_group" "allow_icmp" {
   name     = "allow-icmp-${var.project_name}"
   type     = "STATEFUL"
   rule_group {
+    rule_variables {
+      ip_sets {
+        key = "SUPERNET"
+        ip_set {
+          definition = [var.supernet]
+        }
+      }
+    }
     rules_source {
       rules_string = <<EOF
-      pass icmp any any -> any any (msg: "Allowing ICMP packets"; sid:2; rev:1;)
+      pass icmp $SUPERNET any -> $SUPERNET any (msg: "Allowing ICMP packets"; sid:2; rev:1;)
       EOF
     }
     stateful_rule_options {

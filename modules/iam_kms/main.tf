@@ -76,18 +76,6 @@ resource "aws_iam_policy_attachment" "ssm_iam_role_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-resource "aws_iam_policy_attachment" "ssm_iam_service_role_attachment" {
-  name       = "ssm_iam_service_role_attachment_${var.project_name}"
-  roles      = [aws_iam_role.role_ec2.id]
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
-}
-
-resource "aws_iam_policy_attachment" "s3_readonly_policy_attachment" {
-  name       = "s3_readonly_policy_attachment_${var.project_name}"
-  roles      = [aws_iam_role.role_ec2.id]
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-}
-
 # KMS
 # KMS Key
 resource "aws_kms_key" "log_key" {
