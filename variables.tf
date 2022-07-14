@@ -17,7 +17,7 @@ variable "project_name" {
 variable "ec2_multi_subnet" {
   description = "Multi subnet Instance Deployment."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "supernet" {
@@ -26,28 +26,13 @@ variable "supernet" {
   default     = "10.0.0.0/8"
 }
 
-# VPCs to create - the subnet definition (depending the VPC type) can be found in locals.tf
-variable "vpcs" {
-  description = "VPCs to create"
+# Spoke VPCs
+variable "spoke_vpcs" {
+  description = "Spoke VPCs definition."
   type        = any
+
   default = {
-
-    "inspection-vpc" = {
-      type                   = "inspection"
-      cidr_block             = "10.129.0.0/24"
-      public_subnet_netmask  = 28
-      private_subnet_netmask = 28
-      tgw_subnet_netmask     = 28
-      number_azs             = 2
-
-      flow_log_config = {
-        log_destination_type = "cloud-watch-logs"
-        retention_in_days    = 7
-      }
-    }
-
     "spoke-vpc-1" = {
-      type                   = "spoke"
       cidr_block             = "10.0.0.0/16"
       private_subnet_netmask = 28
       tgw_subnet_netmask     = 28
@@ -61,7 +46,6 @@ variable "vpcs" {
     }
 
     "spoke-vpc-2" = {
-      type                   = "spoke"
       cidr_block             = "10.1.0.0/16"
       private_subnet_netmask = 24
       tgw_subnet_netmask     = 28
@@ -72,6 +56,25 @@ variable "vpcs" {
         log_destination_type = "cloud-watch-logs"
         retention_in_days    = 7
       }
+    }
+  }
+}
+
+# Inspection VPC
+variable "inspection_vpc" {
+  description = "Inspection VPC definition."
+  type        = any
+
+  default = {
+    cidr_block             = "10.129.0.0/24"
+    public_subnet_netmask  = 28
+    private_subnet_netmask = 28
+    tgw_subnet_netmask     = 28
+    number_azs             = 2
+
+    flow_log_config = {
+      log_destination_type = "cloud-watch-logs"
+      retention_in_days    = 7
     }
   }
 }
