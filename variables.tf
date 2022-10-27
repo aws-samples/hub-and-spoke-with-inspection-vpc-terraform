@@ -5,25 +5,13 @@
 variable "region" {
   description = "AWS Region."
   type        = string
-  default     = "us-east-1"
+  default     = "eu-west-1"
 }
 
 variable "project_name" {
   description = "Name of the project."
   type        = string
   default     = "aws-hub-and-spoke-demo"
-}
-
-variable "ec2_multi_subnet" {
-  description = "Multi subnet Instance Deployment."
-  type        = bool
-  default     = true
-}
-
-variable "supernet" {
-  description = "Hub and Spoke Supernet."
-  type        = string
-  default     = "10.0.0.0/8"
 }
 
 # Spoke VPCs
@@ -33,11 +21,12 @@ variable "spoke_vpcs" {
 
   default = {
     "spoke-vpc-1" = {
-      cidr_block             = "10.0.0.0/16"
-      private_subnet_netmask = 28
-      tgw_subnet_netmask     = 28
-      number_azs             = 2
-      instance_type          = "t2.micro"
+      cidr_block              = "10.0.0.0/24"
+      workload_subnet_netmask = 28
+      endpoint_subnet_netmask = 28
+      tgw_subnet_netmask      = 28
+      number_azs              = 2
+      instance_type           = "t2.micro"
 
       flow_log_config = {
         log_destination_type = "cloud-watch-logs"
@@ -46,11 +35,12 @@ variable "spoke_vpcs" {
     }
 
     "spoke-vpc-2" = {
-      cidr_block             = "10.1.0.0/16"
-      private_subnet_netmask = 24
-      tgw_subnet_netmask     = 28
-      number_azs             = 2
-      instance_type          = "t2.micro"
+      cidr_block              = "10.0.1.0/24"
+      workload_subnet_netmask = 28
+      endpoint_subnet_netmask = 28
+      tgw_subnet_netmask      = 28
+      number_azs              = 2
+      instance_type           = "t2.micro"
 
       flow_log_config = {
         log_destination_type = "cloud-watch-logs"

@@ -34,5 +34,5 @@ output "instances" {
 
 output "network_firewall" {
   description = "AWS Network Firewall ID."
-  value       = module.aws_network_firewall.anfw.id
+  value       = module.aws_network_firewall.aws_network_firewall.id
 }
