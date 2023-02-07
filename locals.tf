@@ -14,20 +14,6 @@ locals {
           protocol    = "icmp"
           cidr_blocks = ["0.0.0.0/0"]
         }
-        http = {
-          description = "Allowing HTTP traffic"
-          from        = 80
-          to          = 80
-          protocol    = "tcp"
-          cidr_blocks = ["0.0.0.0/0"]
-        }
-        https = {
-          description = "Allowing HTTPS traffic"
-          from        = 443
-          to          = 443
-          protocol    = "tcp"
-          cidr_blocks = ["0.0.0.0/0"]
-        }
       }
       egress = {
         any = {
@@ -39,6 +25,7 @@ locals {
         }
       }
     }
+
     endpoints = {
       name        = "endpoints_sg"
       description = "Security Group for SSM connection"

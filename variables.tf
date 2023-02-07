@@ -11,7 +11,7 @@ variable "region" {
 variable "project_name" {
   description = "Name of the project."
   type        = string
-  default     = "aws-hub-and-spoke-demo"
+  default     = "hubspoke-inspection"
 }
 
 # Spoke VPCs
@@ -61,10 +61,5 @@ variable "inspection_vpc" {
     private_subnet_netmask = 28
     tgw_subnet_netmask     = 28
     number_azs             = 2
-
-    flow_log_config = {
-      log_destination_type = "cloud-watch-logs"
-      retention_in_days    = 7
-    }
   }
 }

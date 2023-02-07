@@ -94,7 +94,7 @@ resource "aws_networkfirewall_rule_group" "allow_icmp" {
       ip_sets {
         key = "SUPERNET"
         ip_set {
-          definition = ["10.0.0.0/8"]
+          definition = ["10.0.0.0/16"]
         }
       }
     }

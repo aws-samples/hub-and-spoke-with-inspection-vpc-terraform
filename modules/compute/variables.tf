@@ -31,12 +31,17 @@ variable "instance_type" {
   description = "EC2 instance type."
 }
 
+variable "ami_id" {
+  type        = string
+  description = "AMI ID."
+}
+
 variable "ec2_iam_instance_profile" {
   type        = string
   description = "EC2 instance profile to attach to the EC2 instance(s)"
 }
 
 variable "ec2_security_group" {
-  type        = any
+  type        = string
   description = "Information about the Security Groups to create."
 }

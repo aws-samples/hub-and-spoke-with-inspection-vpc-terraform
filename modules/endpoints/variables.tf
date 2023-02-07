@@ -22,7 +22,7 @@ variable "vpc_subnets" {
 }
 
 variable "endpoints_security_group" {
-  type        = any
+  type        = string
   description = "Information about the Security Groups to create - for the VPC endpoints."
 }
 
