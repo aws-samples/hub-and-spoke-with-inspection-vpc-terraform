@@ -18,7 +18,7 @@ This repository contains terraform code to deploy a sample AWS Hub and Spoke arc
 
 ## Target Architecture
 
-![Architecture diagram](../images/architecture\_diagram.png)
+![Architecture diagram](../images/single\_account.png)
 
 ## Deployment
 
