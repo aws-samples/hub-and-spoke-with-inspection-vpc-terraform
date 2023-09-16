@@ -16,13 +16,13 @@ This repository contains terraform code to deploy a sample AWS Hub and Spoke arc
 
 **Note** EC2 instances, VPC endpoints, and AWS Network Firewall endpoints will be deployed in all the Availability Zones configured for each VPC. Keep this in mind when testing this environment from a cost perspective - for production environments, we recommend the use of at least 2 AZs for high-availability.
 
-## Deployment
+## Deployment
 
 * `terraform init` to initialize the environment.
 * `terraform plan` to check the resources to create
 * `terraform apply` to build the architecture.
 
-## Clean-up
+## Clean-up
 
 * `terraform destroy` will clean-up the resources created.
 
