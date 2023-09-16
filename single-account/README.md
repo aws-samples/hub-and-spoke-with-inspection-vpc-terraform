@@ -16,6 +16,10 @@ This repository contains terraform code to deploy a sample AWS Hub and Spoke arc
 
 **Note** EC2 instances, VPC endpoints, and AWS Network Firewall endpoints will be deployed in all the Availability Zones configured for each VPC. Keep this in mind when testing this environment from a cost perspective - for production environments, we recommend the use of at least 2 AZs for high-availability.
 
+## Target Architecture
+
+![Architecture diagram](../images/architecture\_diagram.png)
+
 ## Deployment
 
 * `terraform init` to initialize the environment.
@@ -41,10 +45,6 @@ This project configures both the alert and flow logs to respective AWS Cloudwatc
 
 To follow best practices, all the logs are encrypted at rest using AWS KMS. The KMS key (alongside the IAM roles needed) is created using the *iam\_kms* module.
 
-## Target Architecture
-
-![Architecture diagram](../images/architecture\_diagram.png)
-
 ## Security
 
 See [CONTRIBUTING](../CONTRIBUTING.md) for more information.
@@ -52,8 +52,6 @@ See [CONTRIBUTING](../CONTRIBUTING.md) for more information.
 ## License
 
 This library is licensed under the MIT-0 License. See the [LICENSE](../LICENSE) file.
-
-------
 
 ## Requirements
 
@@ -72,9 +70,9 @@ This library is licensed under the MIT-0 License. See the [LICENSE](../LICENSE) 
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_compute"></a> [compute](#module\_compute) | ../modules/compute | n/a |
+| <a name="module_compute"></a> [compute](#module\_compute) | ./modules/compute | n/a |
 | <a name="module_hubspoke"></a> [hubspoke](#module\_hubspoke) | aws-ia/network-hubandspoke/aws | 3.0.2 |
-| <a name="module_iam_kms"></a> [iam\_kms](#module\_iam\_kms) | ../modules/iam_kms | n/a |
+| <a name="module_iam_kms"></a> [iam\_kms](#module\_iam\_kms) | ./modules/iam_kms | n/a |
 | <a name="module_spoke_vpcs"></a> [spoke\_vpcs](#module\_spoke\_vpcs) | aws-ia/vpc/aws | = 4.3.0 |
 
 ## Resources

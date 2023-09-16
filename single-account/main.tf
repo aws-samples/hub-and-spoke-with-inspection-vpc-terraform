@@ -86,7 +86,7 @@ module "spoke_vpcs" {
 
 # ---------- EC2 INSTANCES & SSM VPC ENDPOINTS ----------
 module "compute" {
-  source   = "../modules/compute"
+  source   = "./modules/compute"
   for_each = module.spoke_vpcs
 
   identifier               = var.identifier
@@ -98,7 +98,7 @@ module "compute" {
 
 # ---------- IAM ROLE (SSM ACCESS & VPC FLOW LOGS) AND KMS KEY (VPC FLOW LOGS) ----------
 module "iam_kms" {
-  source = "../modules/iam_kms"
+  source = "./modules/iam_kms"
 
   identifier = var.identifier
   aws_region = var.aws_region
