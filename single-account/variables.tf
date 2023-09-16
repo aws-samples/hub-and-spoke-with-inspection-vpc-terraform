@@ -1,14 +1,16 @@
 /* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
    SPDX-License-Identifier: MIT-0 */
 
+# --- single-account/variables.tf ---
+
 # Variables that define project configuration
-variable "region" {
+variable "aws_region" {
   description = "AWS Region."
   type        = string
   default     = "eu-west-1"
 }
 
-variable "project_name" {
+variable "identifier" {
   description = "Name of the project."
   type        = string
   default     = "hubspoke-inspection"

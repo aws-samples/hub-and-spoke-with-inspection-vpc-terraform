@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-# AWS Hub and Spoke Architecture with an Inspection VPC - Terraform Sample
+# AWS Hub and Spoke Architecture with an Inspection VPC - Single AWS Account
 
 This repository contains terraform code to deploy a sample AWS Hub and Spoke architecture with an Inspection VPC using AWS Network Firewall. The resources deployed and the architectural pattern they follow is purely for demonstration/testing purposes.
 

@@ -1,11 +1,12 @@
 /* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
    SPDX-License-Identifier: MIT-0 */
 
+# --- single-account/policy.tf ---
+
 resource "aws_networkfirewall_firewall_policy" "anfw_policy" {
-  name = "firewall-policy-${var.project_name}"
+  name = "firewall-policy-${var.identifier}"
 
   firewall_policy {
-
     # Stateless configuration
     stateless_default_actions          = ["aws:forward_to_sfe"]
     stateless_fragment_default_actions = ["aws:forward_to_sfe"]
@@ -34,7 +35,7 @@ resource "aws_networkfirewall_firewall_policy" "anfw_policy" {
 # Stateless Rule Group - Dropping any SSH or RDP connection
 resource "aws_networkfirewall_rule_group" "drop_remote" {
   capacity = 2
-  name     = "drop-remote-${var.project_name}"
+  name     = "drop-remote-${var.identifier}"
   type     = "STATELESS"
   rule_group {
     rules_source {
@@ -87,7 +88,7 @@ resource "aws_networkfirewall_rule_group" "drop_remote" {
 # Stateful Rule Group 1 - Allowing ICMP traffic
 resource "aws_networkfirewall_rule_group" "allow_icmp" {
   capacity = 100
-  name     = "allow-icmp-${var.project_name}"
+  name     = "allow-icmp-${var.identifier}"
   type     = "STATEFUL"
   rule_group {
     rule_variables {
@@ -112,7 +113,7 @@ resource "aws_networkfirewall_rule_group" "allow_icmp" {
 # Stateful Rule Group 2 - Allowing access to .amazon.com (HTTPS)
 resource "aws_networkfirewall_rule_group" "allow_domains" {
   capacity = 100
-  name     = "allow-domains-${var.project_name}"
+  name     = "allow-domains-${var.identifier}"
   type     = "STATEFUL"
   rule_group {
     rules_source {

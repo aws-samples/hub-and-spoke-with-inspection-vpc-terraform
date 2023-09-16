@@ -1,6 +1,8 @@
 /* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
    SPDX-License-Identifier: MIT-0 */
 
+# --- single-account/outputs.tf ---
+
 output "vpcs" {
   description = "VPCs created."
   value = {
@@ -24,12 +26,12 @@ output "transit_gateway_route_tables" {
 
 output "vpc_endpoints" {
   description = "SSM VPC endpoints created."
-  value       = { for k, v in module.vpc_endpoints : k => v.endpoint_ids }
+  value       = { for k, v in module.compute : k => v.endpoint_ids }
 }
 
 output "instances" {
   description = "EC2 instances created."
-  value       = { for k, v in module.compute : k => v.instances_created.*.id }
+  value       = { for k, v in module.compute : k => v.ec2_instances.*.id }
 }
 
 output "network_firewall" {

@@ -1,6 +1,8 @@
 /* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
    SPDX-License-Identifier: MIT-0 */
 
+# --- single-account/providers.tf ---
+
 terraform {
   required_version = ">= 1.3.0"
   required_providers {
@@ -8,19 +10,12 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 3.73.0"
     }
-    awscc = {
-      source  = "hashicorp/awscc"
-      version = ">= 0.15.0"
-    }
   }
 }
 
-# AWS Provider configuration - AWS Region indicated in root/variables.tf
+# AWS Provider configuration
 provider "aws" {
-  region = var.region
-}
-provider "awscc" {
-  region = var.region
+  region = var.aws_region
 }
 
 
