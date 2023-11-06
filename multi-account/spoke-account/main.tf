@@ -27,7 +27,7 @@ data "aws_secretsmanager_secret_version" "ipam_pool_id" {
 # VPCs
 module "vpcs" {
   source   = "aws-ia/vpc/aws"
-  version  = "4.3.0"
+  version  = "4.4.0"
   for_each = var.vpcs
 
   name                    = each.key
@@ -43,7 +43,11 @@ module "vpcs" {
   subnets = {
     endpoints       = { netmask = 28 }
     private         = { netmask = 28 }
-    transit_gateway = { netmask = 28 }
+    transit_gateway = { 
+      netmask = 28 
+    
+      tags = { domain = var.vpcs[each.key].routing_domain }
+    }
   }
 
   tags = {

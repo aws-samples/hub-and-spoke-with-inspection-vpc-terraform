@@ -56,7 +56,7 @@ data "aws_secretsmanager_secret_version" "firewall_policy_arn" {
 # Hub and Spoke architecture
 module "hubspoke" {
   source  = "aws-ia/network-hubandspoke/aws"
-  version = "3.0.2"
+  version = "3.2.0"
 
   identifier = "hubspoke-${var.identifier}"
   transit_gateway_attributes = {
