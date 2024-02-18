@@ -7,7 +7,7 @@
 # Module - https://registry.terraform.io/modules/aws-ia/network-hubandspoke/aws/latest
 module "hubspoke" {
   source     = "aws-ia/network-hubandspoke/aws"
-  version    = "3.0.2"
+  version    = "3.2.0"
   identifier = var.identifier
 
   transit_gateway_attributes = {
@@ -55,7 +55,7 @@ module "hubspoke" {
 module "spoke_vpcs" {
   for_each = var.spoke_vpcs
   source   = "aws-ia/vpc/aws"
-  version  = "= 4.3.0"
+  version  = "= 4.4.2"
 
   name       = each.key
   cidr_block = each.value.cidr_block
@@ -84,16 +84,15 @@ module "spoke_vpcs" {
   }
 }
 
-# ---------- EC2 INSTANCES & SSM VPC ENDPOINTS ----------
+# ---------- EC2 INSTANCES & EC2 INSTANCE CONNECT ENDPOINT ----------
 module "compute" {
   source   = "./modules/compute"
   for_each = module.spoke_vpcs
 
-  identifier               = var.identifier
-  vpc_name                 = each.key
-  vpc                      = each.value
-  vpc_information          = var.spoke_vpcs[each.key]
-  ec2_iam_instance_profile = module.iam_kms.ec2_iam_instance_profile
+  identifier      = var.identifier
+  vpc_name        = each.key
+  vpc             = each.value
+  vpc_information = var.spoke_vpcs[each.key]
 }
 
 # ---------- IAM ROLE (SSM ACCESS & VPC FLOW LOGS) AND KMS KEY (VPC FLOW LOGS) ----------

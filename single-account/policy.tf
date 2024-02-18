@@ -27,12 +27,16 @@ resource "aws_networkfirewall_firewall_policy" "anfw_policy" {
     }
     stateful_rule_group_reference {
       priority     = 20
+      resource_arn = aws_networkfirewall_rule_group.allow_tcp.arn
+    }
+    stateful_rule_group_reference {
+      priority     = 30
       resource_arn = aws_networkfirewall_rule_group.allow_domains.arn
     }
   }
 }
 
-# Stateless Rule Group - Dropping any SSH or RDP connection
+# Stateless Rule Group - Dropping any SSH connection
 resource "aws_networkfirewall_rule_group" "drop_remote" {
   capacity = 2
   name     = "drop-remote-${var.identifier}"
@@ -64,22 +68,6 @@ resource "aws_networkfirewall_rule_group" "drop_remote" {
             }
           }
         }
-
-        stateless_rule {
-          priority = 2
-          rule_definition {
-            actions = ["aws:drop"]
-            match_attributes {
-              protocols = [27]
-              source {
-                address_definition = "0.0.0.0/0"
-              }
-              destination {
-                address_definition = "0.0.0.0/0"
-              }
-            }
-          }
-        }
       }
     }
   }
@@ -87,7 +75,7 @@ resource "aws_networkfirewall_rule_group" "drop_remote" {
 
 # Stateful Rule Group 1 - Allowing ICMP traffic
 resource "aws_networkfirewall_rule_group" "allow_icmp" {
-  capacity = 100
+  capacity = 1
   name     = "allow-icmp-${var.identifier}"
   type     = "STATEFUL"
   rule_group {
@@ -110,17 +98,51 @@ resource "aws_networkfirewall_rule_group" "allow_icmp" {
   }
 }
 
-# Stateful Rule Group 2 - Allowing access to .amazon.com (HTTPS)
+# Stateful Rule Group 2 - Allowing TCP traffic to port 443 (HTTS) access to .amazon.com (HTTPS)
+resource "aws_networkfirewall_rule_group" "allow_tcp" {
+  capacity = 1
+  name     = "allow-tcp-${var.identifier}"
+  type     = "STATEFUL"
+  rule_group {
+    rule_variables {
+      ip_sets {
+        key = "VPCS"
+        ip_set {
+          definition = values({for k, v in var.spoke_vpcs: k => v.cidr_block })
+        }
+      }
+    }
+    rules_source {
+      rules_string = <<EOF
+      pass tcp $VPCS any <> $EXTERNAL_NET 443 (msg:"Allowing TCP in port 443"; flow:not_established; sid:892123; rev:1;)
+      EOF
+    }
+    stateful_rule_options {
+      rule_order = "STRICT_ORDER"
+    }
+  }
+}
+
+# Stateful Rule Group 3 - Allowing access to .amazon.com (HTTPS)
 resource "aws_networkfirewall_rule_group" "allow_domains" {
   capacity = 100
   name     = "allow-domains-${var.identifier}"
   type     = "STATEFUL"
   rule_group {
+    rule_variables {
+      ip_sets {
+        key = "HOME_NET"
+        ip_set {
+          definition = values({ for k, v in var.spoke_vpcs: k => v.cidr_block })
+        }
+      }
+    }
     rules_source {
-      rules_string = <<EOF
-      pass tcp any any <> $EXTERNAL_NET 443 (msg:"Allowing TCP in port 443"; flow:not_established; sid:892123; rev:1;)
-      pass tls any any -> $EXTERNAL_NET 443 (tls.sni; dotprefix; content:".amazon.com"; endswith; msg:"Allowing .amazon.com HTTPS requests"; sid:892125; rev:1;)
-      EOF
+      rules_source_list {
+        generated_rules_type = "ALLOWLIST"
+        target_types         = ["TLS_SNI"]
+        targets              = [".amazon.com"]
+      }
     }
     stateful_rule_options {
       rule_order = "STRICT_ORDER"

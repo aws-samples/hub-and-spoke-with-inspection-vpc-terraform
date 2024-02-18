@@ -24,11 +24,6 @@ output "transit_gateway_route_tables" {
   }
 }
 
-output "vpc_endpoints" {
-  description = "SSM VPC endpoints created."
-  value       = { for k, v in module.compute : k => v.endpoint_ids }
-}
-
 output "instances" {
   description = "EC2 instances created."
   value       = { for k, v in module.compute : k => v.ec2_instances.*.id }
