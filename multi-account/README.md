@@ -17,7 +17,7 @@ This repository contains terraform code to deploy a sample AWS Hub and Spoke arc
 * Clone the repository
 * Edit the variables.tf file in each of the directories (*security-account*, *networking-account*, *spoke-account*). Each file contains the information used to configure the Terraform code in each AWS Account.
 
-**Note** EC2 instances, VPC endpoints, and AWS Network Firewall endpoints will be deployed in all the Availability Zones configured for each VPC. Keep this in mind when testing this environment from a cost perspective - for production environments, we recommend the use of at least 2 AZs for high-availability.
+**Note** EC2 instances, and AWS Network Firewall endpoints will be deployed in all the Availability Zones configured for each VPC. Keep this in mind when testing this environment from a cost perspective - for production environments, we recommend the use of at least 2 AZs for high-availability.
 
 ## Target Architecture
 

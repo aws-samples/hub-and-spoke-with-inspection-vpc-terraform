@@ -17,6 +17,13 @@ variable "aws_region" {
   default = "eu-west-1"
 }
 
+variable "network_supernet" {
+  type        = string
+  description = "Network supernet."
+
+  default = "10.0.0.0/16"
+}
+
 variable "secret_name" {
   type        = string
   description = "AWS Secrets Manager secret name."

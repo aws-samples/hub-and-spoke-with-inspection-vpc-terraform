@@ -25,6 +25,7 @@ No modules.
 | [aws_kms_key.secrets_key](https://registry.terraform.io/providers/hashicorp/aws/5.16.2/docs/resources/kms_key) | resource |
 | [aws_networkfirewall_firewall_policy.central_inspection_policy](https://registry.terraform.io/providers/hashicorp/aws/5.16.2/docs/resources/networkfirewall_firewall_policy) | resource |
 | [aws_networkfirewall_rule_group.allow_domains](https://registry.terraform.io/providers/hashicorp/aws/5.16.2/docs/resources/networkfirewall_rule_group) | resource |
+| [aws_networkfirewall_rule_group.allow_tcp](https://registry.terraform.io/providers/hashicorp/aws/5.16.2/docs/resources/networkfirewall_rule_group) | resource |
 | [aws_networkfirewall_rule_group.drop_remote](https://registry.terraform.io/providers/hashicorp/aws/5.16.2/docs/resources/networkfirewall_rule_group) | resource |
 | [aws_ram_principal_association.principal_association](https://registry.terraform.io/providers/hashicorp/aws/5.16.2/docs/resources/ram_principal_association) | resource |
 | [aws_ram_resource_association.firewall_policy_share](https://registry.terraform.io/providers/hashicorp/aws/5.16.2/docs/resources/ram_resource_association) | resource |
@@ -42,6 +43,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS Region. | `string` | `"eu-west-1"` | no |
 | <a name="input_identifier"></a> [identifier](#input\_identifier) | Account Identifier. | `string` | `"security-account"` | no |
+| <a name="input_network_supernet"></a> [network\_supernet](#input\_network\_supernet) | Network supernet. | `string` | `"10.0.0.0/16"` | no |
 | <a name="input_secret_name"></a> [secret\_name](#input\_secret\_name) | AWS Secrets Manager secret name. | `string` | `"security-account-firewall-policy-arn"` | no |
 
 ## Outputs

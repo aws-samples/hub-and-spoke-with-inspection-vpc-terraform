@@ -19,8 +19,7 @@
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_compute"></a> [compute](#module\_compute) | ../modules/compute | n/a |
-| <a name="module_iam"></a> [iam](#module\_iam) | ../modules/iam | n/a |
-| <a name="module_vpcs"></a> [vpcs](#module\_vpcs) | aws-ia/vpc/aws | 4.4.0 |
+| <a name="module_vpcs"></a> [vpcs](#module\_vpcs) | aws-ia/vpc/aws | 4.4.2 |
 
 ## Resources
 

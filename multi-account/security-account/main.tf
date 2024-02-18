@@ -29,6 +29,10 @@ resource "aws_networkfirewall_firewall_policy" "central_inspection_policy" {
     stateful_default_actions = ["aws:drop_strict", "aws:alert_strict"]
     stateful_rule_group_reference {
       priority     = 10
+      resource_arn = aws_networkfirewall_rule_group.allow_tcp.arn
+    }
+    stateful_rule_group_reference {
+      priority     = 20
       resource_arn = aws_networkfirewall_rule_group.allow_domains.arn
     }
   }
@@ -71,17 +75,52 @@ resource "aws_networkfirewall_rule_group" "drop_remote" {
   }
 }
 
+# Stateful Rule Group - Allowing TCP traffic to port 443 (HTTPS)
+resource "aws_networkfirewall_rule_group" "allow_tcp" {
+  capacity = 1
+  name     = "allow-tcp-${var.identifier}"
+  type     = "STATEFUL"
+  rule_group {
+    rule_variables {
+      ip_sets {
+        key = "NETWORK"
+        ip_set {
+          definition = [var.network_supernet]
+        }
+      }
+    }
+    rules_source {
+      rules_string = <<EOF
+      pass tcp $NETWORK any <> $EXTERNAL_NET 443 (msg:"Allowing TCP in port 443"; flow:not_established; sid:892123; rev:1;)
+      EOF
+    }
+    stateful_rule_options {
+      rule_order = "STRICT_ORDER"
+    }
+  }
+}
+
+
 # Stateful Rule Group - Allowing access to .amazon.com (HTTPS)
 resource "aws_networkfirewall_rule_group" "allow_domains" {
   capacity = 100
   name     = "allow-domains-${var.identifier}"
   type     = "STATEFUL"
   rule_group {
+    rule_variables {
+      ip_sets {
+        key = "HOME_NET"
+        ip_set {
+          definition = [var.network_supernet]
+        }
+      }
+    }
     rules_source {
-      rules_string = <<EOF
-      pass tcp any any <> $EXTERNAL_NET 443 (msg:"Allowing TCP in port 443"; flow:not_established; sid:892123; rev:1;)
-      pass tls any any -> $EXTERNAL_NET 443 (tls.sni; dotprefix; content:".amazon.com"; endswith; msg:"Allowing .amazon.com HTTPS requests"; sid:892125; rev:1;)
-      EOF
+      rules_source_list {
+        generated_rules_type = "ALLOWLIST"
+        target_types         = ["TLS_SNI"]
+        targets              = [".amazon.com"]
+      }
     }
     stateful_rule_options {
       rule_order = "STRICT_ORDER"

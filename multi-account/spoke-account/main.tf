@@ -27,7 +27,7 @@ data "aws_secretsmanager_secret_version" "ipam_pool_id" {
 # VPCs
 module "vpcs" {
   source   = "aws-ia/vpc/aws"
-  version  = "4.4.0"
+  version  = "4.4.2"
   for_each = var.vpcs
 
   name                    = each.key
@@ -82,7 +82,7 @@ resource "aws_secretsmanager_secret_version" "vpc_information" {
   secret_string = jsonencode(local.vpc_information)
 }
 
-# ---------- EC2 INSTANCES & SSM VPC ENDPOINTS ----------
+# ---------- EC2 INSTANCES ----------
 module "compute" {
   source   = "../modules/compute"
   for_each = module.vpcs
@@ -91,12 +91,4 @@ module "compute" {
   vpc_name                 = each.key
   vpc                      = each.value
   vpc_information          = var.vpcs[each.key]
-  ec2_iam_instance_profile = module.iam.ec2_iam_instance_profile
-}
-
-# ---------- IAM ROLE (SSM ACCESS) ----------
-module "iam" {
-  source = "../modules/iam"
-
-  identifier = var.identifier
 }
