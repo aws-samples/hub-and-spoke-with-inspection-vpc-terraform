@@ -8,6 +8,7 @@ This repository contains terraform code to deploy a sample AWS Hub and Spoke arc
 * Amazon VPC IPAM should be enabled in the AWS Organization
     * The *Networking Account* should be configured as the delegated Account to manage VPC IPAM.
     * Check the [VPC IPAM documentation](https://docs.aws.amazon.com/vpc/latest/ipam/enable-integ-ipam.html) for more information about the required configuration.
+* AWS Resource Access Manager has [resource sharing within AWS Organization enabled](https://docs.aws.amazon.com/ram/latest/userguide/getting-started-sharing.html#getting-started-sharing-orgs).
 * Terraform installed
 
 ## Code Principles:
