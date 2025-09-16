@@ -1,7 +1,7 @@
 /* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
    SPDX-License-Identifier: MIT-0 */
 
-# --- single-account/variables.tf ---
+# --- single-account/east_west/variables.tf ---
 
 # Variables that define project configuration
 variable "aws_region" {
@@ -13,7 +13,7 @@ variable "aws_region" {
 variable "identifier" {
   description = "Name of the project."
   type        = string
-  default     = "hubspoke-inspection"
+  default     = "singleaccount-eastwest"
 }
 
 # Spoke VPCs
