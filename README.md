@@ -7,7 +7,9 @@ You will find two examples: the architecture built in a single AWS Account, and 
 
 * [Single AWS Account](./single-account/)
 
-![Single-Account diagram](./images/single_account.png)
+![Single-Account centralized egress diagram](./images/single_account_centralizedegress.png)
+
+![Single-Account east-west diagram](./images/single_account_eastwest.png)
 
 * [Multi-AWS Account](./multi-account/)
 
